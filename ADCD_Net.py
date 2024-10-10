@@ -235,6 +235,9 @@ class S_Net(nn.Module):
         self.Ms_mb = Mamba(d_model=Ms_stout, out_ch=self.hide_line, expand=1)
         self.Pan_mb = Mamba(d_model=Pan_stin, out_ch=self.hide_line, expand=1)
 
+        self.Ms_st4 = nn.Sequential(nn.Linear(8 * 8 * 128, Ms_stout), LayerNorm(Ms_stout))
+        self.Pan_st4 = nn.Sequential(nn.Linear(8 * 8 * 128, Pan_stin), LayerNorm(Pan_stin))
+
 
         self.out_proj_norm = LayerNorm(self.hide_line)
 
@@ -280,12 +283,16 @@ class S_Net(nn.Module):
 
 if __name__ == "__main__":
     # torch.randn:用来生成随机数字的tensor，这些随机数字满足标准正态分布（0~1），batch_size=2， 1通道（灰度图像为1），图片尺寸：64x64
-    pan = torch.randn(2, 2, 16, 16)
-    ms = torch.randn(2, 64, 16, 16)
+    pan = torch.randn(2, 1, 64, 64)
+    ms = torch.randn(2, 4, 16, 16)
     # mshpan = torch.randn(2, 1, 64, 64)
-    Net = Net(64, 2, 7)
+    # Net = Net(4, 1, 7)
+    cnn0 = SS_Net(4, 1)
+    cnn1 = S_Net(4, 1, 7)
+    _, Ms_token, Pan_token, Ms, Pan = cnn0(ms, pan)
+    out_result, pan_output, ms_output = cnn1(ms, pan, Ms_token, Pan_token, Ms, Pan)  # cnn output
     # out_result = grf_net(ms, pan, mshpan)
-    out_result = Net(ms, pan)
+    # out_result = Net(ms, pan)
     print(out_result)
     print(out_result.shape)
 
